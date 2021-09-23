@@ -16,7 +16,6 @@ Created on Thu Sep  2 08:45:19 2021
 
 #  JB Clark, Aug 2021
 
-from typing_extensions import Concatenate
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -52,10 +51,10 @@ os.chdir(ICMDir)
 #                   "Which location would you like to run for?" "\n"
 #                   "The current options are Chesapeake or Yukon ---> ")
 
-print("Hello!Welcome to ICM." "\n"
+print("Hello! Welcome to ICM." "\n"
       "This current version is for Chesapeake Bay" "\n"
-      "Station data is read in and light and algae are dynamically\
-      calculated. This is version 0.1")
+      "Station data is read variables are dynamically calculated. This is version 0.1")
+
 WhichData = 'Chesapeake'
 StatDir = ICMDir+"/Inputs/"+WhichData
 
@@ -104,7 +103,7 @@ myTS = pd.read_csv(WQ_fname)
 Light_fname = StatDir + "/CBay_Spectral.csv"
 myLT = pd.read_csv(Light_fname)
 
-# read in surfacec forcing information for light and weather
+# read in surface forcing information for light and weather
 weather_fname = StatDir+"/Weather/"+StatName+"_Weather.csv"
 mySFC = pd.read_csv(weather_fname)
 
@@ -145,8 +144,8 @@ Tin = myTS.WTEMP
 # Water Salinity
 Sin = myTS.SALINITY
 # Nitrogen
-rivNH4in = myTS.NH4F
-rivNO3in = myTS.NO23F
+RivNH4in = myTS.NH4F
+RivNO3in = myTS.NO23F
 # Convert upstream chl a concentration into algae 1 and 2 carbon
 RivAlgae1in = myTS.CHLA*0.5*dv.cchla1*1e-3
 RivAlgae2in = myTS.CHLA*0.5*dv.cchla1*1e-3
@@ -161,6 +160,8 @@ Vin = mySFC.vwnd[0:365]
 EdIn = mySFC.dswrf*0.43
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # LIGHT PARAMETERS
+# wavelengths, nm
+WL = myLT.Lambda
 # absorption due to water, m^-1
 aWater = myLT.aW
 # mass specific absorption for each colored DOC, m^2 gC^-1
@@ -177,10 +178,8 @@ aP = myLT.aP
 bbP = myLT.bbp
 # spectral distribution of light, nm^-1
 SpecDis = myLT.Spec_dist
-# LIGHT PARAMETERIZATION
-# calculate and set up things for light
-# wavelengths, nm
-WL = myLT.Lambda
+
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 # interpolate all forcing to the model time step
 T = np.interp(modtime, modtimein, Tin)
@@ -188,8 +187,8 @@ S = np.interp(modtime, modtimein, Sin)
 Speed = np.sqrt(Uin ** 2 + Vin ** 2)
 Uwind = np.interp(modtime, modtimein, Speed)
 
-rivNH4 = np.interp(modtime, modtimein, rivNH4in)
-rivNO3 = np.interp(modtime, modtimein, rivNO3in)
+RivNH4 = np.interp(modtime, modtimein, RivNH4in)
+RivNO3 = np.interp(modtime, modtimein, RivNO3in)
 RivAlgae1 = np.interp(modtime, modtimein, RivAlgae1in)
 RivAlgae1 = np.interp(modtime, modtimein, RivAlgae2in)
 RiverISS = np.interp(modtime, modtimein, RiverISSin)
@@ -275,7 +274,6 @@ PN2 = np.zeros(mylen)
 NT = np.zeros(mylen)
 i = 1
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 while current_time < modtime[len(modtime)-1]:
 
     JDAY = current_time/86400
@@ -320,9 +318,9 @@ while current_time < modtime[len(modtime)-1]:
     NO3A = Algae1.NO3A+Algae2.NO3A
 
     DTNO3 = nt.DTNO3(NH4[i-1], NO3[i-1], T[i-1], DO2[i-1], NO3A,
-                     Q[i-1], Volume, FRate, rivNO3[i-1])
+                     Q[i-1], Volume, FRate, RivNO3[i-1])
     DTNH4 = nt.DTNH4(NH4[i-1], NO3[i-1], T[i-1], DO2[i-1], MNLDON,
-                     NH4A, Q[i-1], Volume, FRate, rivNH4[i-1])
+                     NH4A, Q[i-1], Volume, FRate, RivNH4[i-1])
 # nitrification
     NT[i] = nt.Nitrification(NH4[i-1], T[i-1], DO2[i-1])
 
@@ -356,8 +354,8 @@ while current_time < modtime[len(modtime)-1]:
 # update the time
     current_time = modtime[i]
     i = i+1
-
-
+print('Congratulations!!!','\n'
+'Model run is complete, plotting some things now')
 # %%%%%%%%%%%%%%%%%%%%%%%%%% END MAIN PROGRAM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Make a Figures Directory if not Exist
 OutDir = ICMDir + "/Outputs"
