@@ -31,6 +31,7 @@ import Algae
 import Oxygen
 import os
 import glob
+from matplotlib import cm
 
 # Before Beginning, read all Instructions
 # Make sure pyICM is in the Desktop, and if not change below
@@ -228,6 +229,8 @@ KD = np.zeros((mylen, len(WL)))
 PAR = np.zeros(mylen)
 KD_PAR = np.zeros(mylen)
 NP_total = np.zeros((mylen, len(WL)))
+Rrs_out = np.zeros((mylen, len(WL)))
+SZA_out = np.zeros(mylen)
 EdAvg = np.zeros((mylen, len(WL)))
 # now find where WL == 400 and WL == 700 to mark off the PAR
 dv.PAR_Id[0] = (np.abs(WL - 400.)).argmin()
@@ -257,7 +260,7 @@ ISS[0] = 10.
 TSS = ISS + (LPOC + RPOC) * 2.5
 
 # Phytoplankton Rate Variables
-SZA = np.zeros(mylen-1)
+SZA = np.zeros(mylen)
 FI1 = np.zeros(mylen)
 FI2 = np.zeros(mylen)
 NL1 = np.zeros(mylen)
@@ -284,12 +287,13 @@ while current_time < modtime[len(modtime)-1]:
               CDOC[i-1] * aCDOC +
               TSS[i-1] * aP)
     bTotal = TSS[i-1] * bbP
-
+    Ed = EdIn[MyDay] * SpecDis
     # call the light attenuation functions
-    KD[(i-1, )], PAR[i-1], NP_total[(i-1, )], KD_PAR[i-1], EdAvg[i-1, ] = \
-        Light.Light_Attenuation(WL, EdIn[MyDay],
+    KD[(i-1, )], PAR[i-1], NP_total[(i-1, )], KD_PAR[i-1], \
+        EdAvg[i-1], Rrs_out[(i-1, )], SZA[i-1] = \
+        Light.Light_Attenuation(WL, Ed,
                                 aTotal, bTotal, dv.Z*0.1,
-                                JDAY, LAT, LON, yy)
+                                JDAY, LAT, LON, yy, T[i-1], S[i-1])
 
     FRate = functions.CalcFlushingRate(Q[i-1], Volume)
 
@@ -410,15 +414,39 @@ plt.show()
 plt.plot(modtime/86400, NPP1)
 plt.xlabel('Time')
 plt.ylabel('$Algae 1 NPP (g C m^{-2} d^{-1})$')
-plt.savefig(FDir + '/NPP_ts.png')
+plt.savefig(FDir + '/NPP1_ts.png')
 plt.show()
 
 plt.plot(modtime/86400, NPP2)
 plt.xlabel('Time')
 plt.ylabel('$Algae 2 NPP (g C m^{-2} d^{-1})$')
-plt.savefig(FDir + '/NPP_ts.png')
+plt.savefig(FDir + '/NPP2_ts.png')
 plt.show()
 
+X, Y = np.meshgrid(WL, modtime / 86400)
+Z = Rrs_out
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+# Plot the surface.
+surf = ax.plot_surface(X, Y, Z, cmap=cm.viridis,
+                       linewidth=0, antialiased=False)
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
+plt.savefig(FDir + '/Rrs_surface.png')
+
+Z = KD
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+# Plot the surface.
+surf = ax.plot_surface(X, Y, Z, cmap=cm.viridis,
+                       linewidth=0, antialiased=False)
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
+plt.savefig(FDir + '/Kd_surface.png')
 
 print('Model Run is All Done, You Can Find Plots in the Outputs/Figures Directory')
 

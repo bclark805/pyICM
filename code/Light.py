@@ -16,26 +16,32 @@ import DefVars as dv
 from pysolar.solar import get_altitude
 import datetime
 import scipy.integrate as integrate
+import OASIM
 
 
 def Light_Attenuation(WL, Ed, aTotal, bTotal, Z,
-                      JDAY, Latitude, Longitude, yy):
+                      JDAY, Latitude, Longitude, yy,T,S):
     # WL is an array of the wavelengths, nm
     # Ed is the spectral light intensity for this day, W m^-2 nm^-1
     # aTotal is the total spectral absorption of size (WL), m^-1
     # bTotal is the total backscatter of size (WL), m^-1
     # Z1 is the average depth of this layer
     # JDAY is the Julian Day (e.g. DOY)
+    # Latitude and longitude are self explanatory (degrees)
+    # T and S are temperature and salinity
+    rlwn = np.zeros(len(WL))
+    Rrs = np.zeros(len(WL))
 
     # KD_out is the spectral attenuation coefficient, m^-1
     # PAR is the number of photons/ day in the PAR range (400-700 nm)
     # NP_Total is the number of photons / second over the entire range per nm
 
     # get the solar zenith angle, the reflection (0-100), and DOY
-    SZA, SREFLECT, DOY = Declination(JDAY, Latitude, Longitude, yy)
+    SZA, SREFLECT, DOY, CTHTAA = Declination(JDAY, Latitude, Longitude, yy)
 
+    SZAa=180*CTHTAA/np.pi
     # now calculate the spectral KD using the Lee et al. 2013 Algo
-    KD_out = KD_LEE(SZA, aTotal, bTotal)
+    KD_out = KD_LEE(SZA,aTotal, bTotal)
     # scaled Ed  based on the reflection, which is 100
     # when the sun is below the horizon
     Ed_Top = Ed * (1. - SREFLECT / 100.)
@@ -47,20 +53,30 @@ def Light_Attenuation(WL, Ed, aTotal, bTotal, Z,
     Ed_Avg = (Ed_Top - Ed_Bottom) / OptDepth
 
     # convert Ed_Avg to total number of photons per second
-    NP_Total = Ed_Avg  # * WL * dv.NP_sec / dv.Avo_N
-    # integrate over the range of PAR
+    NP_Total = Ed_Avg * WL * dv.NP_sec / dv.Avo_N
 
+    # integrate over the range of PAR
     PARin = integrate.simps(NP_Total[dv.PAR_Id[0]:dv.PAR_Id[1]],
                             WL[dv.PAR_Id[0]:dv.PAR_Id[1]])
 
-    PARout = PARin * dv.NP_day / dv.Avo_N
+    PARout = PARin * 86400
 
     KD_PAR = np.average(KD_out[dv.PAR_Id[0]:dv.PAR_Id[1]])
+    # loop over each wavelength and
+    # calculate the remote sensing reflectance (Rrs)
+    # j = 0
+    # while j <= len(WL)-1:
+        # rlwn[j], Rrs[j] = OASIM.OASIM(WL[j], Ed_Top[j], T, S, aTotal[j],
+        #                               bTotal[j])
+        
+    rlwn, Rrs = OASIM.OASIM(WL, Ed_Top, T, S, aTotal, bTotal)
+        # j = j + 1
 
-    return KD_out, PARout, NP_Total, KD_PAR, Ed_Avg
+    return KD_out, PARout, NP_Total, KD_PAR, Ed_Avg, Rrs, SZA, SZAa
 
 
 def Declination(JDAY, LAT, LON, yy):
+
     # function to calculate the declination of the sun
     # based on the time of day
 
@@ -101,7 +117,7 @@ def Declination(JDAY, LAT, LON, yy):
 
     SZA = get_altitude(LAT, LON, mydate)
 
-    return SZA, SREFLECT, DOY
+    return SZA, SREFLECT, DOY, CTHTAA
 
 
 def KD_LEE(SZA, a_total, beta_tss):
