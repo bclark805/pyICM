@@ -221,7 +221,7 @@ DO2 = np.zeros(mylen)
 DO2[0] = 10.0
 
 # temp var for DON remineralization
-MNLDON = 0.05
+MNLDON = 0.0
 
 # set up an array for KD, PAR, and NP_Total to collect and pass back to main
 # from the light attenuation function

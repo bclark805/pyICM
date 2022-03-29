@@ -34,6 +34,9 @@ def get_bell(A1, A2, Ref, Val):
         theta = np.exp(-A2*(Ref-Val)**2)
     return theta
 
+def running_mean(x, N):
+    cumsum = numpy.cumsum(numpy.insert(x, 0, 0)) 
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
 
 def get_ft(kt, Tref, T):
     # exponentially based temperature function used in many

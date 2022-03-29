@@ -75,7 +75,7 @@ def InitializeVariables():
     global BMR2
     BMR2 = 0.02
 
-    # basal algal predation rate from Kimmet et al. 2006 for zooplankton in CBay
+    # basal algal predation rate from Kimmel et al. 2006 for zooplankton in CBay
     global BPR1
     BPR1 = 1.5
     global BPR2
@@ -87,7 +87,7 @@ def InitializeVariables():
     global FNP2
     FNP2 = 0.1
 
-    # algaal nitrogeen to carbon ratio, fixed
+    # algal nitrogen to carbon ratio, fixed
     global ANC1
     ANC1 = 0.135
     global ANC2

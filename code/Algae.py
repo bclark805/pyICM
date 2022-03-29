@@ -55,7 +55,7 @@ def DTB1(B1, NH4, NO3, T, PAR, FRate, RiverAlg, Q, V):
 
     # now fill the data structure with variables that can be used elsewhere
 
-    Algae1.NPP = NPP1 * dv.Z * 0.5
+    Algae1.NPP = NPP1 * dv.Z
     Algae1.GPP = GPP1
     Algae1.DTB1 = DTB1out
     Algae1.NH4A = NH4A
@@ -109,7 +109,7 @@ def DTB2(B2, NH4, NO3, T, PAR, FRate, RiverAlg, Q, V):
     NO3A = AlgNO3(PN2, P2, B2, dv.ANC2)
 
     # now fill the data structure with variables that can be used elsewhere
-    Algae2.NPP = NPP2 * dv.Z * 0.5
+    Algae2.NPP = NPP2 * dv.Z
     Algae2.GPP = GPP2
     Algae2.DTB2 = DTB2out
     Algae2.NH4A = NH4A
