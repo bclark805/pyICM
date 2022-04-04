@@ -1,2 +1,2 @@
-pysolar
-datetime
+pysolar==0.10
+datetime==4.4
