@@ -1,0 +1,11 @@
+name: pyICM-environment
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - os
+  - sys
+  - matplotlib
+  - pandas
+  - scipy
+  - glob
